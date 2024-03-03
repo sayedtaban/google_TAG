@@ -1,11 +1,11 @@
-/*
+/**
  * Copyright 2024 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *      https://www.apache.org/licenses/LICENSE-2.0
+ *       https://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -14,8 +14,11 @@
  * limitations under the License.
  */
 
-class SheetsService {
-  constructor(spreadsheetId) {
+/** Sheet Client Helper Class. */
+export class SheetsService {
+  private static instance: SheetsService;
+  private readonly spreadsheet_: GoogleAppsScript.Spreadsheet.Spreadsheet;
+  constructor(spreadsheetId: string | undefined) {
     let spreadsheet;
     if (spreadsheetId) {
       try {
@@ -31,30 +34,35 @@ class SheetsService {
     }
     this.spreadsheet_ = spreadsheet;
   }
-  getHeaders(sheet) {
+  getHeaders(sheet: GoogleAppsScript.Spreadsheet.Sheet) {
     return sheet
       .getRange(1, 1, 1, sheet.getMaxColumns())
       .getValues()[0]
       .filter(cell => cell !== '');
   }
-  getTotalRows(sheetName) {
+  getTotalRows(sheetName: string): number {
     const sheet = this.spreadsheet_.getSheetByName(sheetName);
-    if (!sheet) return;
+    if (!sheet) return -1;
     return sheet.getDataRange().getLastRow();
   }
-  getTotalColumns(sheetName) {
+  getTotalColumns(sheetName: string) {
     const sheet = this.spreadsheet_.getSheetByName(sheetName);
     if (!sheet) return;
     return sheet.getDataRange().getLastColumn();
   }
-  getNonEmptyRows(sheetName) {
+  getNonEmptyRows(sheetName: string) {
     const sheet = this.spreadsheet_.getSheetByName(sheetName);
+    if (!sheet) return;
     return sheet
       .getDataRange()
       .getValues()
       .filter(row => row.join('').length > 0);
   }
-  getRangeData(sheetName, startRow, startCol, numRows = 0, numCols = 0) {
+  getRangeData(sheetName: string,
+               startRow: number,
+               startCol: number,
+               numRows = 0,
+               numCols = 0) {
     const sheet = this.getSpreadsheet().getSheetByName(sheetName);
     if (!sheet || numRows + sheet.getLastRow() - startRow + 1 === 0) {
       return [[]];
@@ -68,7 +76,12 @@ class SheetsService {
       )
       .getValues();
   }
-  setValuesInDefinedRange(sheetName, row, col, values) {
+  setValuesInDefinedRange(
+      sheetName: string,
+      row: number,
+      col: number,
+      values: Array<Array<string | number | undefined | boolean>>
+  ) {
     const sheet = this.getSpreadsheet().getSheetByName(sheetName);
     if (!sheet) return;
     if (values[0]) {
@@ -77,15 +90,20 @@ class SheetsService {
         .setValues(values);
     }
   }
-  appendRows(sheetName, values) {
+  appendRows(sheetName: string,
+             values: Array<Array<string | number | undefined | boolean>>) {
     const sheet = this.getSpreadsheet().getSheetByName(sheetName);
     if (!sheet) return;
     if (values[0]) {
-      console.log(values[0])
+      console.log(values[0]);
       sheet.appendRow(values);
     }
   }
-  clearDefinedRange(sheetName, row, col, numRows = 0, numCols = 0) {
+  clearDefinedRange(sheetName: string,
+                    row: number,
+                    col: number,
+                    numRows = 0,
+                    numCols = 0) {
     const sheet = this.getSpreadsheet().getSheetByName(sheetName);
     if (!sheet) return;
     sheet
@@ -97,13 +115,18 @@ class SheetsService {
       )
       .clear();
   }
-  getCellValue(sheetName, row, col) {
+  getCellValue(sheetName: string,
+               row: number,
+               col: number) {
     const sheet = this.getSpreadsheet().getSheetByName(sheetName);
     if (!sheet) return null;
     const cell = sheet.getRange(row, col);
     return cell.getValue();
   }
-  setCellValue(row, col, val, sheetName) {
+  setCellValue(row: number,
+               col: number,
+               val: string | number | undefined | boolean,
+               sheetName?: string) {
     const sheet = sheetName
       ? this.getSpreadsheet().getSheetByName(sheetName)
       : this.getSpreadsheet().getActiveSheet();
@@ -116,10 +139,12 @@ class SheetsService {
   getSpreadsheetApp() {
     return SpreadsheetApp;
   }
-  static getInstance(spreadsheetId) {
-    if (typeof this.instance === 'undefined') {
-      this.instance = new SheetsService(spreadsheetId);
+  static getInstance(spreadsheetId?: string) {
+    if (typeof SheetsService.instance === 'undefined'
+        && typeof spreadsheetId === 'string') {
+      SheetsService.instance = new SheetsService(spreadsheetId);
     }
-    return this.instance;
+    SheetsService.instance = new SheetsService(undefined);
+    return SheetsService.instance;
   }
 }

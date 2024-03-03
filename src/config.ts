@@ -1,11 +1,11 @@
-/*
+/**
  * Copyright 2024 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *      https://www.apache.org/licenses/LICENSE-2.0
+ *       https://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-const CONFIG = {
+/** System Configuration. */
+export const CONFIG = {
   userSettings: {
     llmConfig: {
       gcpProjectId: {
@@ -119,9 +120,20 @@ const CONFIG = {
     maxRetries: 3,
     quotaLimitDelay: 30 * 1000,
   },
+  sheetName: {
+    config: 'Config',
+    blockingKeywords: 'Blocking Keywords',
+    templates: 'Templates',
+    multiBatchInput: 'Multi-Batch Input',
+    exampleInput: 'Example Input',
+    sacaInput: 'SACA Input',
+    output: 'Output',
+    log: 'LOG',
+  }
 };
 
-const TEXT_LENGTH_CONFIG = {
+/** Text Ads Length Configuration For Different Languages. */
+export const TEXT_LENGTH_CONFIG:{[k: string]: {[k: string]: number}} = {
   'Traditional Chinese': {
     headline: 15,
     description: 45
@@ -145,11 +157,32 @@ const TEXT_LENGTH_CONFIG = {
   'French': {
     headline: 30,
     description: 90
+  },
+  'German': {
+    headline: 30,
+    description: 90
+  },
+  'Vietnamese': {
+    headline: 30,
+    description: 90
+  },
+  'Indonesian': {
+    headline: 30,
+    description: 90
+  },
+  'Thai': {
+    headline: 30,
+    description: 90
+  },
+  'Portuguese': {
+    headline: 30,
+    description: 90
   }
-}
+};
 
-const CHARACTERS_TO_BE_REMOVED = [
+/** Characters to be removed in LLM Output. */
+export const CHARACTERS_TO_BE_REMOVED = [
   'JSON',
   'json',
   '`'
-]
+];

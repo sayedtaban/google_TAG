@@ -1,11 +1,11 @@
-/*
+/**
  * Copyright 2024 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *      https://www.apache.org/licenses/LICENSE-2.0
+ *       https://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -14,14 +14,69 @@
  * limitations under the License.
  */
 
-class VertexHelper {
-  constructor(projectId, modelId, modelParams, fineTuneModelId) {
+import { CONFIG } from './config';
+import { MultiLogger } from './logger';
+
+/** Vertex AI Model Params Definition. */
+export interface VertexAiModelParams {
+  temperature: number;
+  maxOutputTokens: number;
+  topK: number;
+  topP: number;
+}
+
+/** Vertex AI Palm Prediction Response Definition. */
+export interface VertexAiPalmPrediction {
+  content: string;
+  safetyAttributes: {
+    blocked: boolean;
+  };
+}
+
+/** Vertex AI Palm Response Definition. */
+export interface VertexAiPalmResponse {
+  error?: {
+    code: number;
+    message: string;
+  };
+  predictions?: VertexAiPalmPrediction[] | null;
+}
+
+/** Vertex AI Gemini Response Definition. */
+export interface VertexAiGeminiResponseCandidate {
+  candidates?: [
+    {
+      content: {
+        parts: [{ text: string }];
+      };
+      finishReason?: string;
+    }
+  ];
+  error?: {
+    code: number;
+    message: string;
+  };
+}
+
+/** Vertex Client Helper Class. */
+export class VertexHelper {
+  private static instance: VertexHelper;
+  private readonly projectId: string;
+  private readonly modelId: string;
+  private readonly fineTuneModelId: string | undefined;
+  private readonly modelParams: VertexAiModelParams;
+
+  constructor(projectId: string,
+              modelId: string,
+              modelParams: VertexAiModelParams,
+              fineTuneModelId?: string | undefined) {
     this.projectId = projectId;
     this.modelId = modelId;
     this.modelParams = modelParams;
-    this.fineTuneModelId = fineTuneModelId
+    this.fineTuneModelId = fineTuneModelId;
   }
-  addAuthPost(params) {
+
+  private addAuthPost(params: unknown) {
     const baseParams = {
       method: 'POST',
       muteHttpExceptions: true,
@@ -32,18 +87,11 @@ class VertexHelper {
     };
     return Object.assign({ payload: JSON.stringify(params) }, baseParams);
   }
-  addAuthGet() {
-    const baseParams = {
-      method: 'GET',
-      muteHttpExceptions: true,
-      contentType: 'application/json',
-      headers: {
-        Authorization: `Bearer ${ScriptApp.getOAuthToken()}`,
-      },
-    };
-    return baseParams;
-  }
-  postRequest(url, params) {
+
+  private postRequestPalm(
+      url:string,
+      params: Record<string, unknown>
+  ): VertexAiPalmResponse {
     const response = UrlFetchApp.fetch(url, params);
     if (response.getResponseCode() === 429) {
       MultiLogger.getInstance().log(
@@ -52,24 +100,35 @@ class VertexHelper {
         }s as API quota limit has been reached...`
       );
       Utilities.sleep(CONFIG.vertexAi.quotaLimitDelay);
-      return this.postRequest(url, params);
+      return this.postRequestPalm(url, params);
     }
-    return response.getContentText()
+    return JSON.parse(response.getContentText());
   }
-  getRequest(url, params) {
+
+  private postRequestGemini(
+      url:string,
+      params: Record<string, unknown>
+  ): VertexAiGeminiResponseCandidate[] {
     const response = UrlFetchApp.fetch(url, params);
-    return response.getContentText()
+    if (response.getResponseCode() === 429) {
+      MultiLogger.getInstance().log(
+          `Waiting ${
+              Number(CONFIG.vertexAi.quotaLimitDelay) / 1000
+          }s as API quota limit has been reached...`
+      );
+      Utilities.sleep(CONFIG.vertexAi.quotaLimitDelay);
+      return this.postRequestGemini(url, params);
+    }
+    return JSON.parse(response.getContentText());
   }
-  fetchJson(rawRes) {
-    return JSON.parse(rawRes);
-  }
-  predict(prompt, isFineTuned) {
+
+  predict(prompt: string, isFineTuned: boolean) {
     MultiLogger.getInstance().log(`Prompt: ${prompt}`);
     if (this.modelId.includes('gemini')) {
-      return this.predict_with_gemini(prompt)
+      return this.predictWithGemini(prompt);
     }
 
-    var predictEndpoint = undefined
+    let predictEndpoint = undefined;
     if (isFineTuned) {
       predictEndpoint = `https://${CONFIG.vertexAi.location}-${CONFIG.vertexAi.endpoint}/v1/projects/${this.projectId}/locations/${CONFIG.vertexAi.location}/endpoints/${this.fineTuneModelId}:predict`;
     } else {
@@ -78,11 +137,8 @@ class VertexHelper {
     const payload = this.addAuthPost({
       instances: [{ content: prompt }],
       parameters: this.modelParams,
-    })
-    const res = this.fetchJson(this.postRequest(
-      predictEndpoint,
-      payload
-    ));
+    });
+    const res = this.postRequestPalm(predictEndpoint, payload);
     MultiLogger.getInstance().log(`Response: ${JSON.stringify(res)}`);
     if (res.error && res.error.code >= 400) {
       throw new Error(res.error.message);
@@ -101,9 +157,8 @@ class VertexHelper {
     throw new Error(JSON.stringify(res));
   }
 
-  predict_with_gemini(prompt) {
-    MultiLogger.getInstance().log(`Prompt: ${prompt}`);
-    var predictEndpoint = undefined
+  private predictWithGemini(prompt: string) {
+    let predictEndpoint = undefined;
     predictEndpoint = `https://${CONFIG.vertexAi.location}-${CONFIG.vertexAi.endpoint}/v1/projects/${this.projectId}/locations/${CONFIG.vertexAi.location}/publishers/google/models/${this.modelId}:streamGenerateContent`;
     const payload = this.addAuthPost({
       "contents": {
@@ -114,31 +169,31 @@ class VertexHelper {
           }
         ]
       }
-    })
-    const res = this.fetchJson(this.postRequest(
+    });
+    const res = this.postRequestGemini(
       predictEndpoint,
       payload
-    ));
+    );
     MultiLogger.getInstance().log(`Response: ${JSON.stringify(res)}`);
     if (!res) {
       throw new Error(`Received empty response from API. Prompt: ${prompt}`);
     }
 
-    var testRes = ''
-    for (const candidate_res of res) {
-      if (candidate_res.error && candidate_res.error.code >= 400) {
-        throw new Error(candidate_res.error.message); 
+    let testRes = '';
+    for (const candidateRes of res) {
+      if (candidateRes.error && candidateRes.error.code >= 400) {
+        throw new Error(candidateRes.error.message);
       }
-      if (!candidate_res.candidates) {
+      if (!candidateRes.candidates) {
         continue;
       }
-      if (!candidate_res.candidates[0]) {
+      if (!candidateRes.candidates[0]) {
         continue;
       }
-      var candidate = candidate_res.candidates[0]
+      const candidate = candidateRes.candidates[0];
       if (!candidate.content) {
         continue;
-      } 
+      }
       if (!candidate.content.parts) {
         continue;
       }
@@ -148,24 +203,22 @@ class VertexHelper {
       if (!candidate.content.parts[0].text) {
         continue;
       }
-      testRes = testRes + candidate.content.parts[0].text
+      testRes = testRes + candidate.content.parts[0].text;
     }
-    return testRes
+    return testRes;
   }
-  listModel() {
-    const listEndpoint = `https://${CONFIG.vertexAi.location}-${CONFIG.vertexAi.endpoint}/v1/projects/${this.projectId}/locations/${CONFIG.vertexAi.location}/models`;
-    const payload = this.addAuthGet()
-    console.log(listEndpoint)
-    console.log(payload)
-    const res = this.getRequest(
-      listEndpoint,
-      payload
-    );
-  }
-  static getInstance(projectId, modelId, modelParams) {
-    if (typeof this.instance === 'undefined') {
-      this.instance = new VertexHelper(projectId, modelId, modelParams);
+
+  static getInstance(projectId: string,
+                     modelId: string,
+                     modelParams: VertexAiModelParams,
+                     fineTuneModelId?: string | undefined) {
+    if (typeof VertexHelper.instance === 'undefined') {
+      VertexHelper.instance = new VertexHelper(
+          projectId,
+          modelId,
+          modelParams,
+          fineTuneModelId);
     }
-    return this.instance;
+    return VertexHelper.instance;
   }
 }

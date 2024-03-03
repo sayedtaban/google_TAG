@@ -1,0 +1,9 @@
+{
+  "preset": "ts-jest",
+  "testEnvironment": "node",
+  "modulePathIgnorePatterns": ["<rootDir>/dist/"],
+  "testPathIgnorePatterns": ["<rootDir>/dist/"],
+  "moduleNameMapper": {
+    "(.+)\\.js": "$1"
+  }
+}
