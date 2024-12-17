@@ -78,7 +78,7 @@ to the [ecommerce](https://docs.google.com/spreadsheets/d/1NZ2WDKPHl5bMT8ynDjzFK
 * How to [Create, Modify, or Close Your Billing Account](https://cloud.google.com/billing/docs/how-to/manage-billing-account)
 
 #### 1.2 Enable Required APIs
-Go to [Vertex AI console](https://pantheon.corp.google.com/vertex-ai)
+Go to [Vertex AI console](https://console.cloud.google.com/vertex-ai)
 Click **Enable All Recommended APIs** in the Vertex AI dashboard.
 
 It might take a few moments for the enabling process to complete. A blue ring
