@@ -110,3 +110,10 @@ Please refer to the Vertex AI [Pricing](https://cloud.google.com/vertex-ai/prici
 and [Quotas and Limits](https://cloud.google.com/vertex-ai/docs/quotas#request_quotas)
 guides for more information.
 
+## Similar Solutions
+Text Ads Generator helps on generating ad copies based on a given list of
+terms such as business context, keywords, products, services, etc. If you
+are looking for expanding existing ad content based on existing keywords in
+RSA, you can try [rsa-ai-generator](https://github.com/google-marketing-solutions/rsa-ai-generator).
+If you are looking for generating ad content based on trending topics to
+increase ad relevance, you can try [topic-mine](https://github.com/google-marketing-solutions/topic-mine).
