@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+import { CONFIG } from './config';
 import {
   fetchGlobalConfig,
   fetchMultiBatchInput,
@@ -38,7 +39,9 @@ function testGemini() {
         maxOutputTokens: globalConfig.maxOutputTokens,
         topK: globalConfig.topK,
         topP: globalConfig.topP
-      });
+      },
+      CONFIG.safetySettings,
+      globalConfig.fineTunedModelId);
   const test = vertexClient.predict('Hello', globalConfig.isFineTuned);
   console.log(test);
 }
@@ -75,6 +78,7 @@ function validateConfig() {
         topK: globalConfig.topK,
         topP: globalConfig.topP,
       },
+      CONFIG.safetySettings,
       globalConfig.fineTunedModelId
   );
 

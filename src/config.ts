@@ -120,6 +120,12 @@ export const CONFIG = {
     maxRetries: 3,
     quotaLimitDelay: 30 * 1000,
   },
+  safetySettings: [
+    {
+      category: 'HARM_CATEGORY_SEXUALLY_EXPLICIT',
+      threshold: 'BLOCK_ONLY_HIGH'
+    }
+  ],
   sheetName: {
     config: 'Config',
     blockingKeywords: 'Blocking Keywords',

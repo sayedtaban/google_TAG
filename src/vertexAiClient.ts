@@ -65,15 +65,18 @@ export class VertexHelper {
   private readonly modelId: string;
   private readonly fineTuneModelId: string | undefined;
   private readonly modelParams: VertexAiModelParams;
+  private readonly safetySettings: Array<{[k: string]: string}>;
 
   constructor(projectId: string,
               modelId: string,
               modelParams: VertexAiModelParams,
+              safetySettings: Array<{[k: string]: string}>,
               fineTuneModelId?: string | undefined) {
     this.projectId = projectId;
     this.modelId = modelId;
     this.modelParams = modelParams;
     this.fineTuneModelId = fineTuneModelId;
+    this.safetySettings = safetySettings;
   }
 
   private addAuthPost(params: unknown) {
@@ -168,7 +171,9 @@ export class VertexHelper {
             "text": prompt
           }
         ]
-      }
+      },
+      "generationConfig": this.modelParams,
+      "safetySettings": this.safetySettings
     });
     const res = this.postRequestGemini(
       predictEndpoint,
@@ -211,12 +216,14 @@ export class VertexHelper {
   static getInstance(projectId: string,
                      modelId: string,
                      modelParams: VertexAiModelParams,
+                     safetySettings: Array<{[k: string]: string}>,
                      fineTuneModelId?: string | undefined) {
     if (typeof VertexHelper.instance === 'undefined') {
       VertexHelper.instance = new VertexHelper(
           projectId,
           modelId,
           modelParams,
+          safetySettings,
           fineTuneModelId);
     }
     return VertexHelper.instance;

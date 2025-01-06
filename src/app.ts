@@ -254,7 +254,9 @@ function callVertexAPI(globalConfig: GlobalConfig,
           maxOutputTokens: globalConfig.maxOutputTokens,
           topK: globalConfig.topK,
           topP: globalConfig.topP
-  }).predict(prompt, globalConfig.isFineTuned);
+      },
+      CONFIG.safetySettings,
+      globalConfig.fineTunedModelId).predict(prompt, globalConfig.isFineTuned);
   console.log(res);
   return res;
 }
