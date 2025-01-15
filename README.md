@@ -86,8 +86,8 @@ circling the bell icon appears in the upper right of the Google Cloud console as
 the APIs are being enabled.
 
 ### 2. How to deploy our solution
-Make a copy of [Spreadsheet Template](https://docs.google.com/spreadsheets/d/1NZ2WDKPHl5bMT8ynDjzFKECdbvr4yKxoSMwr1F-4bQQ)
-Follow the instructions in [User Manual](https://docs.google.com/document/d/1KUIYQWEyJbNF-sUA4vNR7Uj3jhdD98-6uLRBcfXWO2c/edit?tab=t.0#heading=h.c869lv7wh53p)
+Make a copy of [Spreadsheet Template](https://docs.google.com/spreadsheets/d/1p_CoGK-sdOFDlNmjC27NaMyFpWMSsYDvIZUsbuE--BQ)
+Follow the instructions in [User Manual](https://docs.google.com/document/d/1nA51cQOaEbecKOOy39eR8UeyWRzHnWF_sU5zSkwow0c)
 
 ### 3. How to customize the AppScript
 Modify code as needed.
