@@ -47,6 +47,9 @@ requirements.
 
 ## Updates
 
+* [20250107]:
+    * Added safety setting control
+
 * [20241215]:
     * Avoided emoji characters in the output
     * Added pop-up alert when user cannot generate new rows
