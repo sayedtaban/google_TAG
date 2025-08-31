@@ -99,8 +99,7 @@ Run `npm install`
 
 Create your own `.clasp.json` file
 
-Run `npm run deploy` to build, test and deploy (via
-[clasp](https://github.com/google/clasp)) all code to the target spreadsheet
+Run `npm run deploy` to build, test and deploy all code to the target spreadsheet
 / Apps Script project.
 
 ## Cost and Efficiency
